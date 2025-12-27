@@ -24,6 +24,7 @@
 - [配置说明](#配置说明)
 - [使用指南](#使用指南)
 - [API 文档](#api-文档)
+- [二次开发](#二次开发)
 - [常见问题](#常见问题)
 
 ## 🚀 快速开始
@@ -368,6 +369,27 @@ curl -X POST "http://localhost:8080/api/query/global" \
 | `/api/query/local` | POST | 本地搜索 | QUERY |
 | `/api/query/global` | POST | 全局搜索 | QUERY |
 | `/api/query/drift` | POST | 漂移搜索 | QUERY |
+| `/api/nl-to-cypher` | POST | NL2Cypher 查询 | QUERY |
+
+## 🔧 二次开发
+
+本项目基于 Microsoft GraphRAG 进行了深度二次开发，扩展了以下功能：
+
+### 核心功能
+
+1. **PDF 文档支持** - 基于 MinerU 的智能 PDF 解析，支持表格和图片的 LLM 处理
+2. **Neo4j 图谱可视化** - 完整的图谱导入、可视化和 NL2Cypher 查询
+3. **RESTful API 服务** - 生产级 API 服务和 Nginx 反向代理
+4. **多种增强功能** - 异步处理、日志系统、缓存管理等
+
+### 详细文档
+
+查看 [CUSTOM_DEVELOPMENT.md](CUSTOM_DEVELOPMENT.md) 了解：
+- PDF 解析的技术架构和实现细节
+- Neo4j 图谱导入和可视化方案
+- API 服务设计和 Nginx 配置
+- 作为智能体工具的集成方式
+- 性能优化和开发指南
 
 ## 🛠️ 管理命令
 
@@ -567,6 +589,8 @@ python server/import_to_neo4j.py
 ---
 
 **快速链接**
+- [CUSTOM_DEVELOPMENT.md](CUSTOM_DEVELOPMENT.md) - 二次开发详细说明
+- [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - 部署指南详解
 - [RUN_DOCKER.md](RUN_DOCKER.md) - Docker 运行详细指南
 - [ALIYUN_DEPLOY.md](ALIYUN_DEPLOY.md) - 阿里云部署指南
 - [CONTRIBUTING.md](CONTRIBUTING.md) - 贡献指南
