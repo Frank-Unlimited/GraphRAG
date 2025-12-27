@@ -5,18 +5,15 @@ services:
       dockerfile: Dockerfile
     container_name: graphrag-service
     ports:
-      - "${PORT:-8000}:8000"
+      - "8080:80"
     volumes:
-      # Mount data directory for input/output
-      - ./data:/app/data
-      # Mount output directory for GraphRAG results
-      - ./output:/app/output
-      # Mount index directory if exists
-      - ./index:/app/index
+      # Mount vector database directory (required - contains LanceDB vector store)
+      # This directory is not in the repository due to large file size
+      - ./data/output:/app/data/output
     environment:
       # Server configuration
       - HOST=0.0.0.0
-      - PORT=8000
+      - PORT=80
       
       # GraphRAG project paths
       - GRAPHRAG_PROJECT_DIR=/app
@@ -59,7 +56,7 @@ services:
     restart: unless-stopped
     
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:80/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3

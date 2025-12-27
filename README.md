@@ -74,14 +74,14 @@ docker pull ghcr.io/frank-unlimited/graphrag:main
 cp .env.example .env
 vim .env  # 填入必需的 API 密钥
 
-# 3. 准备 data 目录（见下方"数据目录准备"）
+# 3. 创建向量数据库目录（首次运行）
+mkdir -p data/output/lancedb
 
 # 4. 运行容器
 docker run -d \
   --name graphrag-service \
   -p 8080:80 \
-  -v $(pwd)/data:/app/data \
-  -v $(pwd)/output:/app/output \
+  -v $(pwd)/data/output:/app/data/output \
   --env-file .env \
   ghcr.io/frank-unlimited/graphrag:main
 
@@ -99,12 +99,14 @@ docker login --username=nick1329599640 \
 # 2. 拉取镜像
 docker pull crpi-925djdtsud86yqkr.cn-hangzhou.personal.cr.aliyuncs.com/hhc510105200301150090/graphrag_for_tutorial:v1.0.0
 
-# 3. 运行（同上）
+# 3. 创建向量数据库目录
+mkdir -p data/output/lancedb
+
+# 4. 运行
 docker run -d \
   --name graphrag-service \
   -p 8080:80 \
-  -v $(pwd)/data:/app/data \
-  -v $(pwd)/output:/app/output \
+  -v $(pwd)/data/output:/app/data/output \
   --env-file .env \
   crpi-925djdtsud86yqkr.cn-hangzhou.personal.cr.aliyuncs.com/hhc510105200301150090/graphrag_for_tutorial:v1.0.0
 ```
@@ -122,7 +124,8 @@ cd GraphRAG
 cp .env.example .env
 vim .env
 
-# 3. 准备 data 目录
+# 3. 创建向量数据库目录（首次运行）
+mkdir -p data/output/lancedb
 
 # 4. 启动服务
 docker-compose up -d
@@ -196,51 +199,79 @@ UPDATE_ACCESS_KEY=duping
 
 ### 数据目录准备
 
-`data` 目录是项目的核心，包含配置文件、输入数据和 prompt 模板。
+项目的配置文件、prompt 模板等已包含在代码仓库中，但**向量数据库文件因体积过大未上传到 GitHub**。
 
-#### 最小化目录结构
+#### 为什么需要挂载向量数据库目录？
+
+GraphRAG 使用 LanceDB 作为向量数据库，存储文档的向量嵌入和索引数据。这些文件通常很大（几百 MB 到几 GB），无法上传到 GitHub。因此：
+
+- ✅ **配置文件**（settings.yaml、prompts 等）已在仓库中
+- ❌ **向量数据库**（data/output/lancedb/）需要你自己生成或从其他地方获取
+- 🔄 **首次运行**时，系统会自动创建空的向量数据库目录
+
+#### 目录结构说明
 
 ```
-data/
-├── .env                          # 环境变量配置（必需）
-├── settings.yaml                 # GraphRAG 配置（必需）
-├── input/                        # 输入数据目录（必需，可为空）
-├── prompts/                      # Prompt 模板目录（必需）
-│   ├── extract_graph_zh.txt
-│   ├── summarize_descriptions_zh.txt
-│   ├── community_report_graph_zh.txt
-│   ├── local_search_system_prompt_zh.txt
-│   ├── global_search_map_system_prompt_zh.txt
-│   ├── global_search_reduce_system_prompt_zh.txt
-│   └── global_search_knowledge_system_prompt_zh.txt
-└── prompt_turn_output/           # Prompt 调优输出（必需）
-    ├── extract_graph_zh.txt
-    ├── summarize_descriptions_zh.txt
-    └── community_report_graph_zh.txt
+项目根目录/
+├── data/                         # 已在仓库中
+│   ├── .env                      # ✅ 环境变量模板（需配置）
+│   ├── settings.yaml             # ✅ GraphRAG 配置
+│   ├── settings_pdf.yaml         # ✅ PDF 处理配置
+│   ├── settings_csv.yaml         # ✅ CSV 处理配置
+│   ├── prompts/                  # ✅ Prompt 模板目录
+│   ├── prompt_turn_output/       # ✅ Prompt 调优输出
+│   └── output/                   # ⚠️ 需要挂载（向量数据库）
+│       ├── *.parquet             # ✅ 实体、关系等数据文件（已在仓库）
+│       └── lancedb/              # ❌ 向量数据库（未在仓库，需挂载）
+└── output/                       # 项目根目录的 output（仅配置文件）
+    └── config.yaml
 ```
 
 #### 准备方式
 
-**方式 1：从现有环境复制（推荐）**
+**方式 1：首次使用（推荐）**
+
+如果你是第一次使用，系统会自动创建向量数据库：
+
 ```bash
-# 如果你有现有的工作环境
-cp -r /path/to/existing/data ./data
+# 1. 克隆项目
+git clone https://github.com/Frank-Unlimited/GraphRAG.git
+cd GraphRAG
+
+# 2. 创建向量数据库目录
+mkdir -p data/output/lancedb
+
+# 3. 配置环境变量
+cp .env.example .env
+vim .env  # 填入你的 API 密钥
+
+# 4. 启动服务（会自动初始化向量数据库）
+docker-compose up -d
 ```
 
-**方式 2：最小化配置**
+**方式 2：使用现有的向量数据库**
+
+如果你有现有的向量数据库（从其他环境迁移）：
+
 ```bash
-# 1. 创建目录结构
-mkdir -p data/{input,output,cache,logs,prompts,prompt_turn_output}
+# 1. 克隆项目
+git clone https://github.com/Frank-Unlimited/GraphRAG.git
+cd GraphRAG
 
-# 2. 复制环境变量
-cp .env.example data/.env
-vim data/.env  # 填入 API 密钥
+# 2. 复制现有的向量数据库
+cp -r /path/to/existing/data/output/lancedb ./data/output/
 
-# 3. 初始化配置（需要先安装项目）
-poetry run graphrag init --root ./data
+# 3. 配置并启动
+cp .env.example .env
+vim .env
+docker-compose up -d
+```
 
-# 4. 复制 prompt 模板（从项目示例或现有环境）
-# 注意：prompts 目录必须包含所有必需的 prompt 文件
+**方式 3：从备份恢复**
+
+```bash
+# 如果你有向量数据库的备份
+tar -xzf lancedb-backup.tar.gz -C ./data/output/
 ```
 
 ### Docker 命令参数说明
@@ -249,8 +280,7 @@ poetry run graphrag init --root ./data
 docker run -d \
   --name graphrag-service \      # 容器名称
   -p 8080:80 \                   # 端口映射：宿主机8080 → 容器80
-  -v $(pwd)/data:/app/data \     # 挂载数据目录（配置、输入）
-  -v $(pwd)/output:/app/output \ # 挂载输出目录（索引结果）
+  -v $(pwd)/data/output:/app/data/output \  # 挂载向量数据库目录（必需）
   --env-file .env \              # 环境变量文件
   ghcr.io/frank-unlimited/graphrag:main  # 镜像地址
 ```
@@ -259,9 +289,19 @@ docker run -d \
 - `-d`：后台运行
 - `--name`：指定容器名称，方便管理
 - `-p 8080:80`：将容器的 80 端口映射到宿主机 8080 端口
-- `-v $(pwd)/data:/app/data`：挂载数据目录，实现数据持久化
-- `-v $(pwd)/output:/app/output`：挂载输出目录，保存索引结果
+- `-v $(pwd)/data/output:/app/data/output`：**挂载向量数据库目录**
+  - 向量数据库文件体积大（几百 MB 到几 GB）
+  - GitHub 无法存储这些大文件
+  - 必须挂载到宿主机以实现数据持久化
 - `--env-file .env`：从文件加载环境变量
+
+**为什么只挂载 data/output？**
+
+项目的配置文件、prompt 模板等已经打包在 Docker 镜像中，只有向量数据库因为体积过大无法上传到 GitHub，需要单独挂载：
+
+- ✅ **已在镜像中**：settings.yaml、prompts/、.env.example 等配置文件
+- ❌ **需要挂载**：data/output/lancedb/ 向量数据库（体积大，未在仓库）
+- 🔄 **自动创建**：首次运行时，如果目录不存在会自动创建
 
 ## 📖 使用指南
 

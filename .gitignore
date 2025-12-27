@@ -58,7 +58,14 @@ docsite/
 .ipynb_checkpoints/
 
 # Large data directories (exclude from git)
-data/
+data/output/lancedb/
+data/cache/
+data/logs/
+data/input/
+data/pdf_outputs/
+data/pdf_csv_exports/
+data/update_output/
+data/mineru_output/
 dev/
 server/data/
 detectron2/
